@@ -39,7 +39,7 @@
 @end
 
 static NSString *SG_FOCUS_ITEM_ASS_KEY = @"com.touchmob.sgfocusitems";
-static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 10.0; //switch interval time
+static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 5.0; //switch interval time
 
 @implementation SGFocusImageFrame
 
