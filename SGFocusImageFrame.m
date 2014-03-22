@@ -8,6 +8,7 @@
 
 #import "SGFocusImageFrame.h"
 #import <objc/runtime.h>
+#import "UIImageView+AFNetworking.h"
 
 #pragma mark - SGFocusImageItem Definition
 @implementation SGFocusImageItem
@@ -25,6 +26,18 @@
 {
     return [[SGFocusImageItem alloc] initWithTitle:title image:image tag:tag];
 }
+
+- (id)initWithTitle:(NSString *)title imageURL:(NSURL *)imageURL tag:(NSInteger)tag
+{
+    self = [super init];
+    if (self) {
+        self.title = title;
+        self.url = imageURL;
+        self.tag = tag;
+    }
+    return self;
+}
+
 @end
 
 #pragma mark - SGFocusImageFrame Definition
@@ -43,6 +56,13 @@ static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 5.0; //switch interval time
 
 @implementation SGFocusImageFrame
 
+- (void)setDelegate:(id<SGFocusImageFrameDelegate>)delegate focusImageItemsArrray:(NSArray *)items
+{
+    objc_setAssociatedObject(self, (__bridge const void *)SG_FOCUS_ITEM_ASS_KEY, items, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    self.delegate = delegate;
+    [self initImageFrame];
+}
+
 - (id)initWithFrame:(CGRect)frame delegate:(id<SGFocusImageFrameDelegate>)delegate focusImageItemsArrray:(NSArray *)items
 {
     self = [super initWithFrame:frame];
@@ -58,16 +78,16 @@ static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 5.0; //switch interval time
 {
     self = [super initWithFrame:frame];
     if (self) {
-        NSMutableArray *imageItems = [NSMutableArray array];  
+        NSMutableArray *imageItems = [NSMutableArray array];
         SGFocusImageItem *eachItem;
         va_list argumentList;
         if (firstItem)
-        {                                  
+        {
             [imageItems addObject: firstItem];
-            va_start(argumentList, firstItem);       
+            va_start(argumentList, firstItem);
             while((eachItem = va_arg(argumentList, SGFocusImageItem *)))
             {
-                [imageItems addObject: eachItem];            
+                [imageItems addObject: eachItem];
             }
             va_end(argumentList);
         }
@@ -112,10 +132,10 @@ static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 5.0; //switch interval time
     [self addSubview:pageControl];
     
     /*
-    scrollView.layer.cornerRadius = 10;
-    scrollView.layer.borderWidth = 1 ;
-    scrollView.layer.borderColor = [[UIColor lightGrayColor ] CGColor];
-    */
+     scrollView.layer.cornerRadius = 10;
+     scrollView.layer.borderWidth = 1 ;
+     scrollView.layer.borderColor = [[UIColor lightGrayColor ] CGColor];
+     */
     scrollView.showsVerticalScrollIndicator = NO;
     scrollView.showsHorizontalScrollIndicator = NO;
     scrollView.pagingEnabled = YES;
@@ -136,9 +156,16 @@ static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 5.0; //switch interval time
     scrollView.contentSize = CGSizeMake(scrollViewSize.width * imageItems.count, scrollViewSize.height);
     for (int i = 0; i < imageItems.count; i++) {
         SGFocusImageItem *item = [imageItems objectAtIndex:i];
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(i * scrollViewSize.width, 0, scrollViewSize.width, scrollViewSize.height)];
-        imageView.image = item.image;
-        [scrollView addSubview:imageView];
+        __block UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(i * scrollViewSize.width, 0, scrollViewSize.width, scrollViewSize.height)];
+        
+        UIImageView *imageViewTemp = [[UIImageView alloc] init];
+        
+        [imageViewTemp setImageWithURLRequest:[NSURLRequest requestWithURL:item.url] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+            imageView.image = image;
+            [scrollView addSubview:imageView];
+        } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+            
+        }];
     }
     
     self.scrollView = scrollView;
@@ -201,7 +228,7 @@ static CGFloat SWITCH_FOCUS_PICTURE_INTERVAL = 5.0; //switch interval time
     _autoScrolling = enable;
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(switchFocusImageItems) object:nil];
     if (_autoScrolling) {
-         [self performSelector:@selector(switchFocusImageItems) withObject:nil afterDelay:self.switchTimeInterval];
+        [self performSelector:@selector(switchFocusImageItems) withObject:nil afterDelay:self.switchTimeInterval];
     }
 }
 #pragma mark - UIScrollViewDelegate

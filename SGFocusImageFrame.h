@@ -13,9 +13,11 @@
 @property (nonatomic, strong)  NSString     *title;
 @property (nonatomic, strong)  UIImage      *image;
 @property (nonatomic, assign)  NSInteger     tag;
+@property (nonatomic, strong)  NSURL        *url;
 
 - (id)initWithTitle:(NSString *)title image:(UIImage *)image tag:(NSInteger)tag;
 + (id)itemWithTitle:(NSString *)title image:(UIImage *)image tag:(NSInteger)tag;
+- (id)initWithTitle:(NSString *)title imageURL:(NSURL *)imageURL tag:(NSInteger)tag;
 @end
 
 
@@ -30,9 +32,10 @@
 
 - (id)initWithFrame:(CGRect)frame delegate:(id<SGFocusImageFrameDelegate>)delegate focusImageItems:(SGFocusImageItem *)items, ... NS_REQUIRES_NIL_TERMINATION;
 - (id)initWithFrame:(CGRect)frame delegate:(id<SGFocusImageFrameDelegate>)delegate focusImageItemsArrray:(NSArray *)items;
+- (void)setDelegate:(id<SGFocusImageFrameDelegate>)delegate focusImageItemsArrray:(NSArray *)items;
 
 @property (nonatomic, assign) BOOL autoScrolling;
-@property (nonatomic) NSTimeInterval switchTimeInterval; // default for 10.0s
+@property (nonatomic) NSTimeInterval switchTimeInterval; // default for 5.0s
 @property (nonatomic, assign) id<SGFocusImageFrameDelegate> delegate;
 
 @end
